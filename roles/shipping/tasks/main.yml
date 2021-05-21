@@ -1,0 +1,35 @@
+- name: Create Application User
+  user:
+    name: roboshop
+    comment: Robo Shop
+
+- name: Make {{COMPONENT}} Folder
+  file: 
+    path: /home/roboshop/{{COMPONENT}}
+    state: directory
+
+- name: Download and Extract Artifacts
+  copy:
+   src: files/
+   dest: /home/roboshop/shipping
+  
+- name: Maven Clean Package
+  shell: cd /home/roboshop/{{COMPONENT}} ; mvn clean package 
+
+- name: Adding Shipping.jar file
+  copy:
+    src: /home/roboshop/{{COMPONENT}}/target/shipping-1.0.jar
+    dest: /home/roboshop/{{COMPONENT}}/shipping.jar
+    remote_src: yes
+
+- name: Add {{COMPONENT}} service file
+  template:
+   src: shipping.service
+   dest: /etc/systemd/system/shipping.service
+   
+- name: Starting {{COMPONENT}} services
+  systemd: 
+   daemon_reload: yes
+   enabled: yes
+   state: restarted
+   name: "{{COMPONENT}}"
