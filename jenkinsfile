@@ -3,14 +3,31 @@ pipeline {
     agent any
     options { disableConcurrentBuilds() }
 
+    parameters {
+    choice(name: 'tfaction', choices: ['init', 'plan', 'apply -auto-approve', 'destroy -auto-approve'], description: 'Pick any action')
+               }
+
+    environment {
+        tfaction = "terraform ${params.tfaction}"
+        invfile  = "shipping_inv"
+        playbook = "shipping.yml"
+                }
+
     stages ('Setup Roboshop Application') { 
         stage ('Installing shipping Server') { 
             steps { 
             withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awskey', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh 'terraform init'
-                    sh 'terraform plan'
+                    sh "${env.tfaction}"
+                    }
+            script {
+                if (params.tfaction == "apply -auto-approve") {
+                    ansiblePlaybook credentialsId: 'DevOps321', installation: 'ansibletool', inventory: "${env.invfile}", playbook: "${env.invfile}"
+
+                }
+                else {
+                    echo "terraform action is: ${env.tfaction}"
+                    }
                     } 
-            ansiblePlaybook credentialsId: 'DevOps321', installation: 'ansibletool', inventory: 'shipping_inv', playbook: 'shipping.yml'
                 } 
             } 
         } 
