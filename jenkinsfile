@@ -9,8 +9,8 @@ pipeline {
 
     environment {
         tfaction = "terraform ${params.tfaction}"
-        invfile  = "shipping_inv"
-        playbook = "shipping.yml"
+        invfile  = "redis_inv"
+        playbook = "redis.yml"
                 }
 
     stages ('Setup Roboshop Application') { 
